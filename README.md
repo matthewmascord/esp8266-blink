@@ -14,75 +14,8 @@ https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vc
 
 ## Building ESP Open SDK
 
-You will first need to follow the Mac OS-specific instructions from https://github.com/pfalcon/esp-open-sdk 
-as follows:
-
-Install dependencies using Homebrew:
-
-```shell script
-brew tap homebrew/dupes
-brew install binutils coreutils automake wget gawk libtool help2man gperf gnu-sed --with-default-names grep
-export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
-```
-
-Assuming your default file system is not case-sensitive, you will need to
-create and mount a case-sensitive drive, and then recursively clone
-the repo from this drive.
-
-```shell script
-sudo hdiutil create ~/Documents/case-sensitive.dmg -volname "case-sensitive" -size 10g -fs "Case-sensitive HFS+"
-sudo hdiutil mount ~/Documents/case-sensitive.dmg
-cd /Volumes/case-sensitive
-git clone --recursive https://github.com/pfalcon/esp-open-sdk.git
-cd esp-open-sdk
-```
-
-Apply various fixes from the internet:
-
-* Tweak crosstool-NG/configure.ac to allow Bash versions greater than 3 (if you have Bash 4 or above 
-on your system - Mac OS normally ships with an ancient version of Bash so this
-is not necessarily a problem)
-
-Change line 193 to:
-
-```
-                     |$EGREP '^GNU bash, version (3\.[1-9]|[4-9])')
-```
-
-* Fix non-standard use of Sed in Makefile:
-
-Add on line 23:
-
-```makefile
-SED = /usr/local/bin/sed
-```
-
-Then update all references to sed with ${SED} on lines 102, 103, 137 and 138
-
-* Do this https://github.com/pfalcon/esp-open-sdk/issues/342#issuecomment-449662238
-
-On line 51-52 of crosstool-NG/kconfig/Makefile,
-
-```makefile
-$(nconf_OBJ) $(nconf_DEP): CFLAGS += $(INTL_CFLAGS) -I/usr/local/Cellar/ncurses/6.2/include
-nconf: LDFLAGS += -lmenu -lpanel $(LIBS) -L/usr/local/Cellar/ncurses/6.2/lib
-```
-
-Finally run the make command to create a standalone SDK:
-
-```shell script
-make
-```
-
-If successful, you should get a message like the following:
-
-```
-Xtensa toolchain is built, to use it:
-
-export PATH=/Volumes/case-sensitive/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
-
-Espressif ESP8266 SDK is installed, its libraries and headers are merged with the toolchain
-```
+Follow the Mac OS-specific instructions from https://github.com/matthewmascord/esp-open-sdk 
+which is a fork of https://github.com/pfalcon/esp-open-sdk to incorporate some Mac OS fixes.
 
 Once the SDK has been built successfully, set ESP_SDK_ROOT and PATH update 
 your path in ~/.zshenv as follows:
@@ -90,7 +23,6 @@ your path in ~/.zshenv as follows:
 ```
 echo export ESP_SDK_ROOT=/Volumes/case-sensitive/esp-open-sdk >> ~/.zshenv
 echo export PATH=${ESP_SDK_ROOT}/xtensa-lx106-elf/bin:$PATH >> ~/.zshenv
-source ~/.zshenv
 ```
 
 ## Building on the command line
@@ -99,11 +31,12 @@ CMake is an open-source, cross-platform family of tools designed to build, test 
 It standardises the way builds and their dependencies are specified and avoids the need to create crazy custom Makefiles 
 that no one understands. CMake creates a standardised Makefile as part of its initial meta-build step.
 
-If building from the command line, you will need to have CMake installed. You
+If building from the command line, you will need to have CMake, python and esptool installed. You
 can use brew for this:
 
 ```shell script
-brew install cmake
+brew install cmake python
+pip3 install esptool
 ```
 
 When running CMake, it's a good idea to do it within a dedicated build directory. This
@@ -114,7 +47,7 @@ a build directory, all these files will be contained and more easily deleted.
 mkdir -p build
 cd build
 rm -rf *
-cmake .. --verbose
+cmake --verbose ..
 ```
 
 ## Flashing from the command line
