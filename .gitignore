@@ -1,5 +1,4 @@
 gdb_rsp_logfile.txt
-cmake-build-debug
-cmake-build-release
+build
 .idea
 **/.DS_Store
