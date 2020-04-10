@@ -1,27 +1,28 @@
 cmake_minimum_required(VERSION 3.15)
-include(cmake/esp8266.cmake)
+project(esp8266-blink C ASM)
 
-project(esp_xcode C ASM)
+set(UNITY_HOME ${CMAKE_CURRENT_LIST_DIR}/Unity)
+set(CMOCK_ROOT ${CMAKE_CURRENT_LIST_DIR}/cmock/CMock)
+set(TARGET_GROUP release CACHE STRING "Group to build")
 
-include_directories(user)
-add_subdirectory(gdbstub)
+if(TARGET_GROUP STREQUAL release)
+    add_subdirectory(gdbstub)
 
-link_directories($ENV{ESP_SDK_ROOT}/sdk/lib)
-add_executable(firmware
-        user/main.c
-        user/user_config.h)
+    add_executable(firmware
+            src/main.c
+            src/main.h
+            src/user_config.h)
 
-target_link_libraries(firmware
-        c
-        gcc
-        hal
-        lwip
-        main
-        net80211
-        phy
-        pp
-        wpa
-        gdbstub
-        )
+    target_include_directories(firmware PUBLIC src)
 
-include(cmake/flash.cmake)
+    include(cmake/flash.cmake)
+elseif(TARGET_GROUP STREQUAL test)
+    include(cmake/test.cmake)
+    include(CTest)
+    add_subdirectory(Unity)
+    add_subdirectory(cmock)
+    add_subdirectory(test)
+else()
+    message(FATAL_ERROR "I don't know the TARGET_GROUP you gave me!")
+endif()
+

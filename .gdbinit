@@ -4,7 +4,7 @@ set remote hardware-breakpoint-limit 1
 set remote hardware-watchpoint-limit 1
 
 # Uncomment the following two lines if debugging from the command line
-# file build/firmware.elf
+# file build-debug/firmware.elf
 # target remote /dev/cu.SLAB_USBtoUART
 
 # The following hook is the magic that makes it work in CLion

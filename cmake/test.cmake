@@ -1,0 +1,1 @@
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wwrite-strings -Wswitch-default -Wunreachable-code -Winit-self -Wmissing-field-initializers -Wno-unknown-pragmas -Wstrict-prototypes -Wundef -Wold-style-definition -Wpointer-arith -Wcast-align")
