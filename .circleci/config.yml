@@ -1,0 +1,40 @@
+version: 2.1
+jobs:
+  checkout:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule update --init --recursive
+      - persist_to_workspace:
+          root: "."
+          paths:
+            - "*"
+  test:
+    docker:
+      - image: circleci/ruby:2.7.1
+    steps:
+      - attach_workspace:
+          at: "."
+      - run:
+          command: |
+            sudo apt-get -y install cmake && \
+            mkdir -p build-test && \
+            cd build-test && \
+            cmake -DCMAKE_BUILD_TYPE=Release -DTARGET_GROUP=test --verbose .. && \
+            cmake --build . --target test_meh_app && \
+            test/test_meh_app
+      - persist_to_workspace:
+          root: "."
+          paths:
+            - build-test
+workflows:
+  build:
+    jobs:
+      - checkout
+      - test:
+          requires:
+            - checkout
