@@ -3,9 +3,10 @@ set serial baud 115200
 set remote hardware-breakpoint-limit 1
 set remote hardware-watchpoint-limit 1
 
-# Uncomment the following two lines if debugging from the command line
-# file build-debug/firmware.elf
-# target remote /dev/cu.SLAB_USBtoUART
+# Add source directory to source search path for debugging
+# Needed if compilation happens on different machine e.g. CI
+directory src
+directory firmware/gdbstub
 
 # The following hook is the magic that makes it work in CLion
 # Inspired by this stackoverflow post on a different issue:
@@ -16,5 +17,5 @@ set remote hardware-watchpoint-limit 1
 # We have to set a hardware breakpoint as it's not possible to set a software
 # breakpoint in flash
 define target hookpost-remote
-    hbreak enable_pins
+    hbreak EnablePins
 end

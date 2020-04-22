@@ -4,10 +4,12 @@ add_custom_command(OUTPUT Mockets_sys.c COMMAND ${CMOCK} ${CMAKE_CURRENT_LIST_DI
 add_custom_command(OUTPUT Mockgdbstub.c COMMAND ${CMOCK} ${CMAKE_CURRENT_LIST_DIR}/gdbstub.h)
 add_custom_command(OUTPUT Mockgpio.c COMMAND ${CMOCK} ${CMAKE_CURRENT_LIST_DIR}/gpio.h)
 add_custom_command(OUTPUT Mockosapi.c COMMAND ${CMOCK} ${CMAKE_CURRENT_LIST_DIR}/osapi.h)
+add_custom_command(OUTPUT Mockuser_interface.c COMMAND ${CMOCK} ${CMAKE_CURRENT_LIST_DIR}/user_interface.h)
 
 add_library(mocks
         Mockets_sys.c
         Mockgdbstub.c
+        Mockuser_interface.c
         Mockgpio.c
         Mockosapi.c)
 

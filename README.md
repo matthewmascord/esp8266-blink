@@ -1,5 +1,7 @@
 # Building and debugging ESP8266 firmware on Mac OS Catalina using CMake, CLion and GDB
 
+[![matthewmascord](https://circleci.com/gh/matthewmascord/esp8266-blink.svg?style=shield)](https://circleci.com/gh/matthewmascord/esp8266-blink)
+
 This is a simple demonstration of building and debugging firmware for an 
 ESP8266 NodeMCU module on Mac OS Catalina using CLion.
 
@@ -12,42 +14,80 @@ communicate with the module over the USB port.
 
 https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers
 
-## Building ESP Open SDK
+CMake is an open-source, cross-platform family of tools designed to build, test and package software.
+It standardises the way builds and their dependencies are specified and avoids the need to create custom Makefiles.
+CMake creates a standardised Makefile as part of its initial meta-build step.
+
+To install CMake on Mac,
+
+```shell script
+brew install cmake
+```
+
+## Running the tests
+
+To run the tests you will need to install cmake and ruby. On Mac OS,
+
+```shell script
+brew install ruby
+```
+
+or on Ubuntu,
+
+```shell script
+sudo apt-get -y install ruby
+```
+
+To run the tests do,
+
+```shell script
+bin/run-tests.sh
+```
+
+## Building the ESP8266 toolchain
 
 Follow the Mac OS-specific instructions from https://github.com/matthewmascord/esp-open-sdk 
 which is a fork of https://github.com/pfalcon/esp-open-sdk to incorporate some Mac OS fixes.
 
-Once the SDK has been built successfully, set ESP_SDK_ROOT and PATH update 
-your path in ~/.zshenv as follows:
+Build in non-standalone mode with,
+
+```shell script
+make STANDALONE=n
+```
+
+Once the SDK has been built successfully, set XTENSA_TOOLCHAIN_ROOT and update 
+your path in ~/.zshenv (Mac) or ~/.profile (Ubuntu). For example,
 
 ```
-echo export ESP_SDK_ROOT=/Volumes/case-sensitive/esp-open-sdk >> ~/.zshenv
-echo export PATH=${ESP_SDK_ROOT}/xtensa-lx106-elf/bin:$PATH >> ~/.zshenv
+echo export XTENSA_TOOLCHAIN_ROOT=/Volumes/case-sensitive/esp-open-sdk/xtensa-lx106-elf >> ~/.zshenv
+echo export PATH=${XTENSA_TOOLCHAIN_ROOT}/bin:$PATH >> ~/.zshenv
+```
+
+## Clone the SDK
+
+This project uses v3.0.3 of the ESP8266 non-OS SDK.
+
+```
+cd ~/projects
+git clone --branch v3.0.3 https://github.com/espressif/ESP8266_NONOS_SDK.git
+echo export ESP_SDK_ROOT=~/projects/ESP8266_NONOS_SDK >> ~/.zshenv
 ```
 
 ## Building on the command line
 
-CMake is an open-source, cross-platform family of tools designed to build, test and package software.
-It standardises the way builds and their dependencies are specified and avoids the need to create crazy custom Makefiles 
-that no one understands. CMake creates a standardised Makefile as part of its initial meta-build step.
-
-If building from the command line, you will need to have CMake, python and esptool installed. You
+If building from the command line, you will need to have python and esptool installed. You
 can use brew for this:
 
 ```shell script
-brew install cmake python
-pip3 install esptool
+brew install python
+sudo pip3 install esptool
+echo export ESP8266_ESPTOOL=$(which esptool.py) >> ~/.zshenv
 ```
 
-When running CMake, it's a good idea to do it within a dedicated build directory. This
-is because CMake likes to create a lot of build files scattered deep within your directory structure. If executed within 
-a build directory, all these files will be contained and more easily deleted.
+Run the following to build the firmware. This will use CMake to build the firmware in the build-debug directory:
 
 ```shell script
-mkdir -p build
-cd build
-rm -rf *
-cmake --verbose ..
+bin/build-debug-firmware.sh
 ```
 
 ## Flashing from the command line
@@ -55,7 +95,7 @@ cmake --verbose ..
 Obviously you will need the ESP8266 module connected to a USB port for this to work.
 
 ```shell script
-cmake --build . --verbose --target flash
+bin/flash-debug-firmware.sh
 ```
 
 The above assumes the USB device will be available at /dev/cu.SLAB_USBtoUART
@@ -75,9 +115,20 @@ bundled one.
 
 ![alt text](docs/cmake-profile.png "ESP8266 Toolchain")
 
-The CMake profile needs the Toolchain specifying (the one just created)
-and set the generation path to be build. Optionally set --verbose
-as a build option.
+For the CMake profile, specify the Toolchain created above and set the 
+generation path to be build-debug. Under CMake options set,
+
+```shell script
+-DCMAKE_TOOLCHAIN_FILE=cmake/toolchain.esp8266.cmake --verbose
+```
+
+Use the GUI to set the XTENSA_TOOLCHAIN_ROOT, 
+ESP_SDK_ROOT and ESP8266_ESPTOOL environment variables. Optionally set --verbose as a build option. 
+
+You can then use the build dialog to select flash | Debug ESP8266 and hit the hammer
+icon to build and flash.
+
+![alt text](docs/build-icon.png "Build Icon")
 
 ## Debugging prerequisites
 
@@ -116,19 +167,21 @@ Create a debug configuration from Run | Edit Configurations:
 
 Reset the board.
 
-Run the debug configuration:
+With all breakpoints muted, run the debug configuration:
 
 ![Run debug](docs/debug-esp8266.png "Run debug")
 
-## Debugging from the command line
+You should initially break on EnablePins. Then you can set breakpoints in the code, and click
+the run button. You should see something similar to:
 
-When debugging from the command line it's necessary to uncomment lines 8 and 9 of .gdbinit where
-indicated.
+![alt text](docs/debug-session.png "Debug Session")
+
+## Debugging from the command line
 
 Then reset the board.
 
 ```shell script
-xtensa-lx106-elf-gdb -x gdbstub/gdbcmds
+bin/run-gdb.h
 ```
 
 You should see something similar to:
@@ -199,3 +252,51 @@ remote Thread <main> In: some_timerfunc                                         
 You can then enter n multiple times to step through the code.
 
 A good tutorial on GDB can be found here https://youtu.be/bWH-nL7v5F4
+
+## Building in CircleCI
+
+To build in CircleCI you will need CircleCI and DockerHub access tokens. These can be obtained through the
+respective GUIs.
+
+In Dockerhub it's important that the repository for the build image esp8266-build has already been created and 
+set to private. Otherwise the image will be publicly available.
+
+Then add the following to your .zshenv (or .profile on Ubuntu):
+
+```
+export CIRCLE_TOKEN=xxxxx
+export GITHUB_USERNAME=xxxxx
+export DOCKERHUB_TOKEN=xxxxx
+export DOCKERHUB_USERNAME=xxxxx
+```
+
+Tar and GZip the ESP8266 toolchain and copy to .circleci/images/default/xtensa-lx106-elf.tar.gz
+
+Then build and push the images
+
+```shell script
+bin/build-images.sh
+bin/push-images.sh
+```
+
+To validate your CircleCI configuration locally before pushing changes,
+
+```shell script
+brew install circleci
+circleci config validate
+```
+
+To create the CircleCI pipeline:
+
+```shell script
+bin/create-pipeline.sh
+```
+
+The next time you push changes to Github, the pipeline will be executed.
+
+To download the binaries from CircleCI:
+
+```shell script
+brew install wget
+bin/download-binaries.sh
+```

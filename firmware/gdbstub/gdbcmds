@@ -1,0 +1,2 @@
+file build-debug/firmware/firmware.elf
+target remote /dev/cu.SLAB_USBtoUART
