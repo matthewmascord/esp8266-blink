@@ -14,4 +14,6 @@ typedef struct _os_timer_t_ {
 void os_timer_arm(os_timer_t *ptimer, uint32_t time, bool repeat_flag);
 void os_timer_disarm(os_timer_t *ptimer);
 void os_timer_setfn(os_timer_t *ptimer, os_timer_func_t *pfunction, void *parg);
+int os_printf_plus(const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+#define os_printf os_printf_plus
 #endif

@@ -1,3 +1,6 @@
+set(UNITY_HOME ${CMAKE_CURRENT_LIST_DIR}/../Unity)
+set(CMOCK_ROOT ${CMAKE_CURRENT_LIST_DIR}/../cmock/CMock)
+
 add_custom_command(
         OUTPUT TestMain_Runner.c
         COMMAND ruby ${UNITY_HOME}/auto/generate_test_runner.rb ${CMAKE_CURRENT_LIST_DIR}/TestMain.c TestMain_Runner.c
