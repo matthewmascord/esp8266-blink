@@ -255,11 +255,14 @@ A good tutorial on GDB can be found here https://youtu.be/bWH-nL7v5F4
 
 ## Building in CircleCI
 
+This assumes that https://www.github.com/matthewmascord/esp-open-sdk has also been built in CircleCI and the
+ toolchain artifact is available to download.
+
 To build in CircleCI you will need CircleCI and DockerHub access tokens. These can be obtained through the
 respective GUIs.
 
 In Dockerhub it's important that the repository for the build image esp8266-build has already been created and 
-set to private. Otherwise the image will be publicly available.
+set to private. Otherwise the image, which contains the toolchain, will be publicly available.
 
 Then add the following to your .zshenv (or .profile on Ubuntu):
 
@@ -269,8 +272,6 @@ export GITHUB_USERNAME=xxxxx
 export DOCKERHUB_TOKEN=xxxxx
 export DOCKERHUB_USERNAME=xxxxx
 ```
-
-Tar and GZip the ESP8266 toolchain and copy to .circleci/images/default/xtensa-lx106-elf.tar.gz
 
 Then build and push the images
 
