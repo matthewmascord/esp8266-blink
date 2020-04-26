@@ -15,7 +15,7 @@ jobs:
             - "*"
   test:
     docker:
-      - image: altosi/unity-test:0.0.1
+      - image: $DOCKERHUB_USERNAME/unity-test:0.0.1
     steps:
       - attach_workspace:
           at: "."
@@ -24,7 +24,7 @@ jobs:
           command: bin/run-tests.sh
   build:
     docker:
-      - image: altosi/esp8266-build:0.0.1
+      - image: $DOCKERHUB_USERNAME/esp8266-build:0.0.1
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_TOKEN
